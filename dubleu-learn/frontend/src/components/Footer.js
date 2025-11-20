@@ -23,6 +23,12 @@ const Footer = () => {
     url: 'https://wa.me/254799722684', 
     icon: '💬',
     color: '#25D366'
+  },
+   {
+    name: 'Email',
+    url: 'mailto:clvesta82@gmail.com', // Added email
+    icon: '📧',
+    color: '#EA4335' // Gmail red color
   }
 ];
 
