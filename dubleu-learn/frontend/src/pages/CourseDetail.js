@@ -64,6 +64,26 @@ const CourseDetail = () => {
     }
   };
 
+  // ADDED: Assignment submission handler
+  const handleSubmitAssignment = async (assignmentId, assignmentTitle) => {
+    try {
+      console.log('🎯 Submitting assignment:', assignmentId, assignmentTitle);
+      
+      // For now, just show an alert - we'll implement actual submission later
+      alert(`Submit assignment: ${assignmentTitle}\n\nThis feature will be implemented next!`);
+      
+      // TODO: Implement actual file/text submission
+      // const response = await api.post(`/api/assignments/${assignmentId}/submit`, {
+      //   submissionText: 'Student answer here',
+      //   attachments: [] // File uploads
+      // });
+      
+    } catch (error) {
+      console.error('❌ Error submitting assignment:', error);
+      alert('Failed to submit assignment: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading course...</div>;
   }
@@ -275,8 +295,14 @@ const CourseDetail = () => {
                     <span className="submission-type">Submissions: {assignment.allowedSubmissions}</span>
                   </div>
                   <div className="assignment-actions">
+                    {/* ADDED: Submit Assignment button with click handler */}
                     {isEnrolled && (
-                      <button className="view-assignment-btn">Submit Assignment</button>
+                      <button 
+                        className="view-assignment-btn"
+                        onClick={() => handleSubmitAssignment(assignment._id, assignment.title)}
+                      >
+                        Submit Assignment
+                      </button>
                     )}
                     {isTeacher && (
                       <Link 
