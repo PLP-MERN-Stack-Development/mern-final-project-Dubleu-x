@@ -17,38 +17,105 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
+    const initializeAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user'); // Check for stored user data
+      
+      console.log('Auth Init - Token:', storedToken);
+      console.log('Auth Init - User:', storedUser);
+
+      if (storedToken) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        setToken(storedToken);
+        
+        // Try to get user from localStorage first, then fetch from API
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+            setLoading(false);
+          } catch (error) {
+            console.error('Error parsing stored user:', error);
+            await fetchUser();
+          }
+        } else {
+          await fetchUser();
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
 
   const fetchUser = async () => {
     try {
+      console.log('Fetching user from API...');
       const response = await api.get('/api/auth/me');
-      setUser(response.data.user);
+      console.log('User API response:', response.data);
+      
+      if (response.data.user) {
+        setUser(response.data.user);
+        // Also store in localStorage for persistence
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      } else {
+        console.warn('No user data in response');
+        logout();
+      }
     } catch (error) {
       console.error('Error fetching user:', error);
-      logout();
+      // If /api/auth/me fails, try to get user data from token or use fallback
+      attemptTokenDecode();
     } finally {
       setLoading(false);
     }
   };
 
+  const attemptTokenDecode = () => {
+    // Simple JWT decode (without verification) to get user ID
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      try {
+        const payload = JSON.parse(atob(storedToken.split('.')[1]));
+        console.log('Token payload:', payload);
+        
+        // Create minimal user object from token
+        if (payload.userId) {
+          const minimalUser = {
+            id: payload.userId,
+            // Add other fields if available in token
+          };
+          setUser(minimalUser);
+          localStorage.setItem('user', JSON.stringify(minimalUser));
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        logout();
+      }
+    }
+  };
+
   const login = async (email, password) => {
     try {
+      console.log('Attempting login...');
       const response = await api.post('/api/auth/login', { email, password });
       const { token: newToken, user: userData } = response.data;
       
+      console.log('Login response:', response.data);
+      
+      // CRITICAL FIX: Store both token AND user data
       localStorage.setItem('token', newToken);
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+      
       setToken(newToken);
       api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       setUser(userData);
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Login failed' 
@@ -61,7 +128,12 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/api/auth/register', userData);
       const { token: newToken, user: userDataResponse } = response.data;
       
+      // FIX: Store user data in localStorage
       localStorage.setItem('token', newToken);
+      if (userDataResponse) {
+        localStorage.setItem('user', JSON.stringify(userDataResponse));
+      }
+      
       setToken(newToken);
       api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       setUser(userDataResponse);
@@ -77,6 +149,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user'); // FIX: Remove user data too
     setToken(null);
     setUser(null);
     delete api.defaults.headers.common['Authorization'];
@@ -84,6 +157,8 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
+    // Also update localStorage
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const value = {
@@ -93,7 +168,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user && !!token
   };
 
   return (

@@ -1,7 +1,9 @@
 const express = require('express');
+const mongoose = require('mongoose'); // ADD THIS LINE
 const Course = require('../models/Course');
 const Lesson = require('../models/Lesson');
 const Assignment = require('../models/Assignment');
+const User = require('../models/User'); // ADD THIS LINE
 const { auth, authorize } = require('../middleware/auth');
 const { courseValidation } = require('../middleware/validation');
 const router = express.Router();
@@ -115,34 +117,80 @@ router.put('/:id', auth, authorize('teacher', 'admin'), async (req, res) => {
   }
 });
 
-// Enroll in course
+// Enroll in course - FIXED VERSION
 router.post('/:id/enroll', auth, async (req, res) => {
   try {
+    console.log('🎯 ENROLLMENT ATTEMPT ==========');
+    console.log('Course ID:', req.params.id);
+    console.log('User ID:', req.user._id);
+    console.log('User Role:', req.user.role);
+
+    // Validate course ID
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      console.log('❌ Invalid course ID format');
+      return res.status(400).json({ message: 'Invalid course ID' });
+    }
+
     const course = await Course.findById(req.params.id);
     if (!course) {
+      console.log('❌ Course not found in database');
       return res.status(404).json({ message: 'Course not found' });
     }
 
+    console.log('📋 Course found:', course.title);
+    console.log('👥 Current students:', course.students);
+
     // Check if already enrolled
-    if (course.students.includes(req.user._id)) {
+    const alreadyEnrolled = course.students.some(studentId => 
+      studentId.toString() === req.user._id.toString()
+    );
+    
+    if (alreadyEnrolled) {
+      console.log('ℹ️ User already enrolled in this course');
       return res.status(400).json({ message: 'Already enrolled in this course' });
     }
 
+    console.log('✅ Adding user to course students array...');
+    
+    // Add to course students
     course.students.push(req.user._id);
     await course.save();
 
     // Add course to user's enrolled courses
+    console.log('👤 Updating user enrolled courses...');
     await User.findByIdAndUpdate(req.user._id, {
       $addToSet: { enrolledCourses: course._id }
     });
 
+    // Populate and get updated course
     await course.populate('teacher', 'profile firstName lastName')
                 .populate('students', 'profile firstName lastName');
 
-    res.json({ message: 'Enrolled successfully', course });
+    console.log('🎉 ENROLLMENT SUCCESSFUL');
+    console.log('Updated students count:', course.students.length);
+    console.log('========================');
+
+    res.json({ 
+      success: true, // ADD THIS - frontend expects this
+      message: 'Enrolled successfully', 
+      course,
+      enrolled: true 
+    });
   } catch (error) {
-    console.error('Enroll error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.log('💥 ENROLLMENT ERROR ==========');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.log('========================');
+    
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid course ID format' });
+    }
+    
+    res.status(500).json({ 
+      success: false, // ADD THIS
+      message: 'Server error during enrollment' 
+    });
   }
 });
 

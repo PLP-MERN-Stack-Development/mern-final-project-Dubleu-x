@@ -13,6 +13,31 @@ const generateToken = (userId) => {
   });
 };
 
+// Add this route to your backend
+router.get('/me', auth, async (req, res) => {
+  try {
+    // req.user should be set by your authMiddleware
+    const user = await User.findById(req.user.userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+        // Add other fields you need
+      }
+    });
+  } catch (error) {
+    console.error('Error in /me route:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Register
 router.post('/register', async (req, res) => {
   try {

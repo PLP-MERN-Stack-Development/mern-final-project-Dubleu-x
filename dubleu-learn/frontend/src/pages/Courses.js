@@ -108,16 +108,31 @@ const Courses = () => {
                 {course.students.length} students enrolled
               </span>
             </div>
-            <div className="course-actions">
-              <Link to={`/courses/${course._id}`} className="view-course-btn">
-                View Course
-              </Link>
-              {user.role === 'student' && !course.students.some(s => s._id === user.id) && (
-                <button className="enroll-btn">
-                  Enroll
-                </button>
-              )}
-            </div>
+           <div className="course-actions">
+  <Link to={`/courses/${course._id}`} className="view-course-btn">
+    View Course
+  </Link>
+  {user.role === 'student' && !course.students.some(s => s._id === user.id) && (
+    <button 
+      className="enroll-btn"
+      onClick={async () => {
+        console.log('🎯 Enroll button clicked in course list');
+        try {
+          const response = await api.post(`/api/courses/${course._id}/enroll`);
+          console.log('✅ Enrollment successful:', response.data);
+          alert('Successfully enrolled!');
+          // Refresh the courses to update the UI
+          fetchCourses();
+        } catch (error) {
+          console.error('❌ Enrollment failed:', error);
+          alert(error.response?.data?.message || 'Enrollment failed');
+        }
+      }}
+    >
+      Enroll
+    </button>
+  )}
+</div>
           </div>
         ))}
       </div>

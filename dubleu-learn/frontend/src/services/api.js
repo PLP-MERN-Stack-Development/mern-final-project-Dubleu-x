@@ -28,9 +28,20 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔐 Token found and added to headers');
+    } else {
+      console.log('⚠️ No token found in localStorage');
     }
     
-    console.log('🔄 API Request:', config.method?.toUpperCase(), config.url);
+    // Safe logging for enrollment requests
+    if (config.url && config.url.includes('/enroll')) {
+      console.log('🎯 ENROLLMENT REQUEST DETAILS:');
+      console.log('Method:', config.method?.toUpperCase());
+      console.log('URL Path:', config.url);
+      console.log('Auth Header:', config.headers.Authorization ? 'Present' : 'Missing');
+    } else {
+      console.log('🔄 API Request:', config.method?.toUpperCase(), config.url);
+    }
     
     return config;
   },
@@ -40,20 +51,36 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle errors
+// Response interceptor to handle errors - FIXED VERSION
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.status, response.config.url);
+    // Safe logging for enrollment responses
+    if (response.config?.url && response.config.url.includes('/enroll')) {
+      console.log('✅ ENROLLMENT RESPONSE SUCCESS:');
+      console.log('Status:', response.status);
+      console.log('Data:', response.data);
+    } else {
+      console.log('✅ API Response:', response.status, response.config?.url);
+    }
     return response;
   },
   (error) => {
-    console.error('❌ API Response Error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      message: error.response?.data?.message || error.message
-    });
+    // Safe error handling - check if error.config exists
+    if (error.config?.url && error.config.url.includes('/enroll')) {
+      console.log('❌ ENROLLMENT RESPONSE ERROR:');
+      console.log('URL:', error.config.url);
+      console.log('Status:', error.response?.status);
+      console.log('Error Message:', error.response?.data?.message);
+    } else {
+      console.error('❌ API Response Error:', {
+        url: error.config?.url,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message
+      });
+    }
     
     if (error.response?.status === 401) {
+      console.log('🔐 401 Unauthorized - Removing token and redirecting to login');
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

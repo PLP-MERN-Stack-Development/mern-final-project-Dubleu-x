@@ -19,17 +19,27 @@ const CourseDetail = () => {
 
   const fetchCourseData = async () => {
     try {
+      console.log('📋 Fetching course data for ID:', id);
+      
       const [courseResponse, lessonsResponse, assignmentsResponse] = await Promise.all([
         api.get(`/api/courses/${id}`),
         api.get(`/api/lessons/course/${id}`),
         api.get(`/api/assignments/course/${id}`)
       ]);
 
+      console.log('✅ Course data fetched:', courseResponse.data);
       setCourse(courseResponse.data);
       setLessons(lessonsResponse.data);
       setAssignments(assignmentsResponse.data);
     } catch (error) {
-      console.error('Error fetching course data:', error);
+      console.error('❌ Error fetching course data:', error);
+      console.error('Error details:', error.response?.data);
+      
+      if (error.response?.status === 404) {
+        setCourse(null); // This will trigger the "Course not found" message
+      } else if (error.response?.status === 403) {
+        alert('Access denied. You may need to enroll in this course first.');
+      }
     } finally {
       setLoading(false);
     }
@@ -37,12 +47,20 @@ const CourseDetail = () => {
 
   const handleEnroll = async () => {
     try {
-      await api.post(`/api/courses/${id}/enroll`);
+      console.log('🎯 Attempting enrollment...');
+      console.log('Course ID:', id);
+      console.log('User ID:', user.id);
+      
+      const response = await api.post(`/api/courses/${id}/enroll`);
+      console.log('✅ Enrollment response:', response.data);
+      
       // Refresh course data to show updated enrollment
       fetchCourseData();
+      alert('Successfully enrolled in the course!');
     } catch (error) {
-      console.error('Error enrolling in course:', error);
-      alert('Failed to enroll in course');
+      console.error('❌ Error enrolling in course:', error);
+      console.error('Error response:', error.response?.data);
+      alert(error.response?.data?.message || 'Failed to enroll in course');
     }
   };
 
@@ -56,7 +74,9 @@ const CourseDetail = () => {
 
   // Enhanced teacher and enrollment checks with debug logging
   const isEnrolled = course.students.some(student => {
-    const enrolled = student._id === user.id || student._id?.toString() === user.id?.toString();
+    const studentId = student._id || student;
+    const enrolled = studentId === user.id || studentId?.toString() === user.id?.toString();
+    console.log('🔍 Enrollment check:', { studentId, userId: user.id, enrolled });
     return enrolled;
   });
   
@@ -64,24 +84,57 @@ const CourseDetail = () => {
                    course.teacher._id?.toString() === user.id?.toString() || 
                    user.role === 'admin';
 
-  // DEBUG LOGGING - Check the browser console for this output
-  console.log('🔍 DEBUG COURSE DETAIL:');
-  console.log('Course:', course);
+  // Comprehensive debug logging
+  console.log('🔍 COMPREHENSIVE DEBUG:');
+  console.log('Course ID:', course?._id);
   console.log('Course Teacher ID:', course?.teacher?._id, 'Type:', typeof course?.teacher?._id);
   console.log('Current User ID:', user?.id, 'Type:', typeof user?.id);
   console.log('User Role:', user?.role);
-  console.log('Is Teacher Calculation:', {
-    teacherId: course?.teacher?._id,
-    userId: user?.id,
-    directMatch: course?.teacher?._id === user?.id,
-    stringMatch: course?.teacher?._id?.toString() === user?.id?.toString(),
-    isAdmin: user?.role === 'admin',
-    finalResult: isTeacher
-  });
+  console.log('Is Teacher:', isTeacher);
   console.log('Is Enrolled:', isEnrolled);
-  console.log('User Object:', user);
+  console.log('Students in course:', course?.students?.length);
+  console.log('Student IDs:', course?.students?.map(s => s._id || s));
+  console.log('Current user in students:', course?.students?.some(s => 
+    (s._id || s) === user.id || (s._id || s)?.toString() === user.id?.toString()
+  ));
   console.log('Lessons count:', lessons.length);
   console.log('Assignments count:', assignments.length);
+
+  // Function to render video embed
+  const renderVideoEmbed = (videoUrl) => {
+    if (!videoUrl) return null;
+    
+    // Convert YouTube watch URL to embed URL if needed
+    let embedUrl = videoUrl;
+    if (videoUrl.includes('youtube.com/watch')) {
+      const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+      if (videoId) {
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+    } else if (videoUrl.includes('youtu.be/')) {
+      const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+      if (videoId) {
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+    
+    return (
+      <div className="video-container">
+        <h5>Video Content:</h5>
+        <div className="video-wrapper">
+          <iframe
+            src={embedUrl}
+            title="Lesson Video"
+            width="100%"
+            height="400"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="course-detail">
@@ -95,6 +148,7 @@ const CourseDetail = () => {
             </span>
             <span className="subject">{course.subject}</span>
             <span className="students">{course.students.length} students</span>
+            {isEnrolled && <span className="enrolled-badge">Enrolled</span>}
           </div>
           {!isEnrolled && user.role === 'student' && (
             <button className="enroll-btn" onClick={handleEnroll}>
@@ -168,13 +222,18 @@ const CourseDetail = () => {
               lessons.map(lesson => (
                 <div key={lesson._id} className="lesson-item">
                   <h4>{lesson.title}</h4>
+                  
+                  {/* Video Display */}
+                  {renderVideoEmbed(lesson.videoUrl)}
+                  
                   <p>{lesson.content.substring(0, 150)}...</p>
                   <div className="lesson-meta">
                     <span>Duration: {lesson.duration || 'N/A'} min</span>
                     <span>Order: {lesson.order}</span>
+                    {lesson.videoUrl && <span className="has-video">Includes Video</span>}
                   </div>
                   {isEnrolled && (
-                    <button className="view-lesson-btn">View Lesson</button>
+                    <button className="view-lesson-btn">View Full Lesson</button>
                   )}
                 </div>
               ))
