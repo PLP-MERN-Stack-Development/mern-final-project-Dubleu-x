@@ -54,8 +54,34 @@ const CourseDetail = () => {
     return <div className="error">Course not found</div>;
   }
 
-  const isEnrolled = course.students.some(student => student._id === user.id);
-  const isTeacher = course.teacher._id === user.id || user.role === 'admin';
+  // Enhanced teacher and enrollment checks with debug logging
+  const isEnrolled = course.students.some(student => {
+    const enrolled = student._id === user.id || student._id?.toString() === user.id?.toString();
+    return enrolled;
+  });
+  
+  const isTeacher = course.teacher._id === user.id || 
+                   course.teacher._id?.toString() === user.id?.toString() || 
+                   user.role === 'admin';
+
+  // DEBUG LOGGING - Check the browser console for this output
+  console.log('🔍 DEBUG COURSE DETAIL:');
+  console.log('Course:', course);
+  console.log('Course Teacher ID:', course?.teacher?._id, 'Type:', typeof course?.teacher?._id);
+  console.log('Current User ID:', user?.id, 'Type:', typeof user?.id);
+  console.log('User Role:', user?.role);
+  console.log('Is Teacher Calculation:', {
+    teacherId: course?.teacher?._id,
+    userId: user?.id,
+    directMatch: course?.teacher?._id === user?.id,
+    stringMatch: course?.teacher?._id?.toString() === user?.id?.toString(),
+    isAdmin: user?.role === 'admin',
+    finalResult: isTeacher
+  });
+  console.log('Is Enrolled:', isEnrolled);
+  console.log('User Object:', user);
+  console.log('Lessons count:', lessons.length);
+  console.log('Assignments count:', assignments.length);
 
   return (
     <div className="course-detail">
