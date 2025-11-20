@@ -64,26 +64,37 @@ const CourseDetail = () => {
     }
   };
 
-  // ADDED: Assignment submission handler
   const handleSubmitAssignment = async (assignmentId, assignmentTitle) => {
-    try {
-      console.log('🎯 Submitting assignment:', assignmentId, assignmentTitle);
-      
-      // For now, just show an alert - we'll implement actual submission later
-      alert(`Submit assignment: ${assignmentTitle}\n\nThis feature will be implemented next!`);
-      
-      // TODO: Implement actual file/text submission
-      // const response = await api.post(`/api/assignments/${assignmentId}/submit`, {
-      //   submissionText: 'Student answer here',
-      //   attachments: [] // File uploads
-      // });
-      
-    } catch (error) {
-      console.error('❌ Error submitting assignment:', error);
-      alert('Failed to submit assignment: ' + (error.response?.data?.message || error.message));
+  try {
+    console.log('🎯 Submitting assignment:', assignmentId, assignmentTitle);
+    
+    // Get submission text from user
+    const textSubmission = prompt(`Submit assignment: ${assignmentTitle}\n\nEnter your submission text:`);
+    
+    if (!textSubmission) {
+      alert('Submission cancelled');
+      return;
     }
-  };
 
+    console.log('🚀 Sending submission to backend...');
+    const response = await api.post(`/api/assignments/${assignmentId}/submit`, {
+      textSubmission: textSubmission, // CHANGED: submissionText -> textSubmission
+      submittedAt: new Date().toISOString()
+      // For file uploads, you'd need to implement file handling
+    });
+
+    console.log('✅ Submission successful:', response.data);
+    alert('Assignment submitted successfully!');
+    
+    // Refresh assignments to show updated submission status
+    fetchCourseData();
+    
+  } catch (error) {
+    console.error('❌ Error submitting assignment:', error);
+    console.error('Error details:', error.response?.data);
+    alert(error.response?.data?.message || 'Failed to submit assignment');
+  }
+};
   if (loading) {
     return <div className="loading">Loading course...</div>;
   }
