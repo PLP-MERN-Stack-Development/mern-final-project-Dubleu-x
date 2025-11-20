@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import './CourseDetail.css';
+import SubmissionForm from '../components/SubmissionForm';
 
 const CourseDetail = () => {
   const { id } = useParams();
@@ -11,6 +12,8 @@ const CourseDetail = () => {
   const [assignments, setAssignments] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
+  const [showSubmissionForm, setShowSubmissionForm] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -64,37 +67,18 @@ const CourseDetail = () => {
     }
   };
 
-  const handleSubmitAssignment = async (assignmentId, assignmentTitle) => {
-  try {
-    console.log('🎯 Submitting assignment:', assignmentId, assignmentTitle);
-    
-    // Get submission text from user
-    const textSubmission = prompt(`Submit assignment: ${assignmentTitle}\n\nEnter your submission text:`);
-    
-    if (!textSubmission) {
-      alert('Submission cancelled');
-      return;
-    }
+  // UPDATED: Open submission form instead of using prompt
+  const handleSubmitAssignment = (assignmentId, assignmentTitle) => {
+    setSelectedAssignment({ id: assignmentId, title: assignmentTitle });
+    setShowSubmissionForm(true);
+  };
 
-    console.log('🚀 Sending submission to backend...');
-    const response = await api.post(`/api/assignments/${assignmentId}/submit`, {
-      textSubmission: textSubmission, // CHANGED: submissionText -> textSubmission
-      submittedAt: new Date().toISOString()
-      // For file uploads, you'd need to implement file handling
-    });
-
-    console.log('✅ Submission successful:', response.data);
-    alert('Assignment submitted successfully!');
-    
-    // Refresh assignments to show updated submission status
+  const handleSubmissionSuccess = (submissionData) => {
+    console.log('✅ Submission completed:', submissionData);
+    // Refresh assignments to show updated status
     fetchCourseData();
-    
-  } catch (error) {
-    console.error('❌ Error submitting assignment:', error);
-    console.error('Error details:', error.response?.data);
-    alert(error.response?.data?.message || 'Failed to submit assignment');
-  }
-};
+  };
+
   if (loading) {
     return <div className="loading">Loading course...</div>;
   }
@@ -306,7 +290,7 @@ const CourseDetail = () => {
                     <span className="submission-type">Submissions: {assignment.allowedSubmissions}</span>
                   </div>
                   <div className="assignment-actions">
-                    {/* ADDED: Submit Assignment button with click handler */}
+                    {/* UPDATED: Submit Assignment button opens form modal */}
                     {isEnrolled && (
                       <button 
                         className="view-assignment-btn"
@@ -347,6 +331,19 @@ const CourseDetail = () => {
           </div>
         )}
       </div>
+
+      {/* ADDED: Submission Form Modal */}
+      {showSubmissionForm && selectedAssignment && (
+        <SubmissionForm
+          assignmentId={selectedAssignment.id}
+          assignmentTitle={selectedAssignment.title}
+          onClose={() => {
+            setShowSubmissionForm(false);
+            setSelectedAssignment(null);
+          }}
+          onSubmissionSuccess={handleSubmissionSuccess}
+        />
+      )}
     </div>
   );
 };
