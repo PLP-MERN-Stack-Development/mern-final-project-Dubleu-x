@@ -6,7 +6,7 @@ class SocketService {
   }
 
   connect() {
-    this.socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
+    this.socket = io(process.env.REACT_APP_SOCKET_URL || 'https://mern-final-project-dubleu-x-9.onrender.com');
     
     this.socket.on('connect', () => {
       console.log('Connected to server');
