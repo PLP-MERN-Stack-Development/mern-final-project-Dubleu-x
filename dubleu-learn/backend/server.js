@@ -11,6 +11,7 @@ console.log('NODE_ENV:', process.env.NODE_ENV || 'UNDEFINED');
 console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
 console.log('MONGODB_URI length:', process.env.MONGODB_URI?.length || 0);
 console.log('PORT:', process.env.PORT || 'UNDEFINED');
+console.log('CLIENT_URL:', process.env.CLIENT_URL || 'UNDEFINED');
 
 // If MONGODB_URI is not set, use hardcoded Atlas URI for now
 if (!process.env.MONGODB_URI) {
@@ -22,9 +23,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
-const socketIo = require('socket.io');
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
+const { initSocket } = require('./config/socket'); // Import socket configuration
 
 console.log('🚀 Starting DubleuLearn Backend Server...');
 console.log('Environment:', process.env.NODE_ENV || 'development');
@@ -40,20 +41,46 @@ const assignmentRoutes = require('./routes/assignments');
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io setup
-const io = socketIo(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
-});
+// Enhanced CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://dubleulearn.vercel.app',
+  'https://mern-final-project-dubleu-x.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean); // Remove any undefined values
+
+console.log('🌐 Allowed CORS origins:', allowedOrigins);
+
+// Enhanced CORS middleware
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('🚫 CORS blocked for origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Connect to database
 connectDB();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Initialize Socket.io
+const io = initSocket(server);
+console.log('✅ Socket.io initialized');
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -74,7 +101,12 @@ app.use('/api/assignments', assignmentRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'DubleuLearn API is running!' });
+  res.json({ 
+    message: 'DubleuLearn API is running!',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Health check route
@@ -83,35 +115,50 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    cors: {
+      allowedOrigins: allowedOrigins,
+      clientUrl: process.env.CLIENT_URL
+    },
+    services: {
+      database: 'MongoDB Atlas',
+      realtime: 'Socket.io',
+      authentication: 'JWT'
+    }
   });
 });
 
-// Socket.io for real-time features
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  
-  socket.on('join-course', (courseId) => {
-    socket.join(courseId);
-    console.log(`User ${socket.id} joined course ${courseId}`);
-  });
-  
-  socket.on('send-message', (data) => {
-    io.to(data.courseId).emit('new-message', data);
-  });
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+// API status route
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'operational',
+    serverTime: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
 // Error handling middleware
 app.use(errorHandler);
 
-// 404 handler
+// 404 handler - MUST be after all routes
 app.use('*', (req, res) => {
   console.log('❌ 404 - Route not found:', req.originalUrl);
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ 
+    message: 'Route not found',
+    path: req.originalUrl,
+    method: req.method,
+    availableEndpoints: [
+      '/health',
+      '/api/status',
+      '/api/auth/register',
+      '/api/auth/login',
+      '/api/auth/me',
+      '/api/courses',
+      '/api/users'
+    ]
+  });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -121,4 +168,26 @@ server.listen(PORT, () => {
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`🔗 API Base: http://localhost:${PORT}/api`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 CORS enabled for origins:`, allowedOrigins);
+  console.log(`🔌 Socket.io real-time features enabled`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+    mongoose.connection.close();
+    process.exit(0);
+  });
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });

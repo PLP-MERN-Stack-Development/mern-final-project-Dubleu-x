@@ -20,6 +20,14 @@ DubleuLearn is a comprehensive MERN stack e-learning platform designed to facili
 
 ## 🚀 Live Deployment
 
+## 📹 VideoDemo.
+
+A screencast is worth a thousand words! Here's a video demonstrating the key workflows:
+
+*   **Full Walkthrough (6:42 min):** A complete guide on usage.
+    [Watch on Vimeo](https://vimeo.com/1139339818)
+
+
 ### **Production Application**
 🌐 **Main URL**: [https://mern-final-project-dubleu-x-awhi.vercel.app](https://mern-final-project-dubleu-x-awhi.vercel.app)
 
