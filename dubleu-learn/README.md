@@ -18,6 +18,21 @@ DubleuLearn is a comprehensive MERN stack e-learning platform designed to facili
 - **Secure File Uploads**
 - **Interactive User Interface**
 
+## 🚀 Live Deployment
+
+### **Production Application**
+🌐 **Main URL**: [https://mern-final-project-dubleu-x-awhi.vercel.app](https://mern-final-project-dubleu-x-awhi.vercel.app)
+
+### **Preview Deployments**
+- **Development Preview**: [https://mern-final-project-dubl-git-8c0ffb-sylvesters-projects-7aa7f8dd.vercel.app](https://mern-final-project-dubl-git-8c0ffb-sylvesters-projects-7aa7f8dd.vercel.app)
+- **Branch Preview**: [https://mern-final-project-dubleu-x-awhi-qudeodioy.vercel.app](https://mern-final-project-dubleu-x-awhi-qudeodioy.vercel.app)
+
+### **Backend API**
+🔧 **API Server**: [https://mern-final-project-dubleu-x-5.onrender.com](https://mern-final-project-dubleu-x-5.onrender.com)
+
+### **API Health Check**
+✅ **Status**: [https://mern-final-project-dubleu-x-5.onrender.com/health](https://mern-final-project-dubleu-x-5.onrender.com/health)
+
 ## 🏗️ Technology Stack
 
 ### Frontend
@@ -35,26 +50,18 @@ DubleuLearn is a comprehensive MERN stack e-learning platform designed to facili
 - **JWT** - Authentication tokens
 - **bcryptjs** - Password hashing
 
-## 🚀 Live Deployment
+### Deployment
+- **Vercel** - Frontend hosting
+- **Render** - Backend hosting
+- **MongoDB Atlas** - Cloud database
 
-🎥 **Video Demonstration**: [Watch Demo Video](
-   
-)
+## 📸 Screenshots
 
-🌐 **Live Application**: [https://dubleulearn.vercel.app](https://dubleulearn.vercel.app) *(Replace with your actual deployment URL)*
-
-
-## 📸 Screenshots...
-
-### Dashboard
+### Teacher Dashboard
 ![Dashboard](./img/Teacher-Dashboard.jpeg)
 
-
-### Dashboard
+### Student Dashboard
 ![Dashboard](./img/Student-Dashboard.jpeg)
-
-
-
 
 ## ⚙️ Setup Instructions
 
@@ -68,7 +75,7 @@ DubleuLearn is a comprehensive MERN stack e-learning platform designed to facili
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/PLP-MERN-Stack-Development/mern-final-project-Dubleu-x.git
-   cd dubleulearn
+   cd mern-final-project-Dubleu-x
    ```
 
 2. **Backend Setup**
@@ -115,7 +122,7 @@ DubleuLearn is a comprehensive MERN stack e-learning platform designed to facili
 ## 🗂️ Project Structure
 
 ```
-dubleulearn/
+mern-final-project-Dubleu-x/
 ├── backend/
 │   ├── models/
 │   │   ├── User.js
@@ -153,11 +160,6 @@ dubleulearn/
 - Create assignments and lessons
 - Grade student submissions
 - Monitor student progress
-
-### Admin
-- Manage all users and courses
-- System-wide analytics
-- Platform configuration
 
 ## 🔐 API Endpoints
 
@@ -216,22 +218,25 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License.
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Developer
 
 **Sylvester Kamau**
-- GitHub: [@Dubleu](https://github.com/Dubleu-x)
-- LinkedIn: [Sylvester](www.linkedin.com/in/sylvester-kamau-b7a714351)
+- GitHub: [@Dubleu-x](https://github.com/Dubleu-x)
+- LinkedIn: [Sylvester Kamau](https://www.linkedin.com/in/sylvester-kamau-b7a714351)
 - Email: clvesta321@gmail.com
+- WhatsApp: [+254799722684](https://wa.me/254799722684)
 
 ## 🙏 Acknowledgments
 
 - React.js community for excellent documentation
 - MongoDB for robust database solutions
 - All contributors and testers
-- PLP Academy for guidance and support.
+- PLP Academy for guidance and support
 
 ---
+
+**⭐ Star this repository if you find it helpful!**
