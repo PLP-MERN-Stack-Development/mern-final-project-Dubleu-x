@@ -37,27 +37,22 @@ DubleuLearn is a comprehensive MERN stack e-learning platform designed to facili
 
 ## 🚀 Live Deployment
 
+🎥 **Video Demonstration**: [Watch Demo Video](./vid/dubleu-learn-quide.mp4)
+
 🌐 **Live Application**: [https://dubleulearn.vercel.app](https://dubleulearn.vercel.app) *(Replace with your actual deployment URL)*
 
-🎥 **Video Demonstration**: [Watch Demo Video](https://youtu.be/your-demo-video) *(Replace with your actual video link)*
 
 ## 📸 Screenshots
 
 ### Dashboard
-![Dashboard](https://via.placeholder.com/800x400/3498db/ffffff?text=Dashboard+Overview)
-*Personalized dashboard showing enrolled courses and upcoming assignments*
+![Dashboard](./vid/Teacher-Dashboard.jpeg)
 
-### Course Management
-![Course Management](https://via.placeholder.com/800x400/2ecc71/ffffff?text=Course+Management)
-*Teachers can create and manage courses with rich content*
 
-### Assignment Submission
-![Assignment Submission](https://via.placeholder.com/800x400/e74c3c/ffffff?text=Assignment+Submission)
-*Students can submit assignments with text and file uploads*
+### Dashboard
+![Dashboard](./vid/Student-Dashboard.jpeg)
 
-### Grading Interface
-![Grading Interface](https://via.placeholder.com/800x400/f39c12/ffffff?text=Grading+Interface)
-*Teachers can grade submissions and provide feedback*
+
+
 
 ## ⚙️ Setup Instructions
 
