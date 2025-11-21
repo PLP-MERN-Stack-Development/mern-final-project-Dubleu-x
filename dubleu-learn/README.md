@@ -36,10 +36,10 @@ A screencast is worth a thousand words! Here's a video demonstrating the key wor
 - **Branch Preview**: [https://mern-final-project-dubleu-x-awhi-qudeodioy.vercel.app](https://mern-final-project-dubleu-x-awhi-qudeodioy.vercel.app)
 
 ### **Backend API**
-🔧 **API Server**: [https://mern-final-project-dubleu-x-5.onrender.com](https://mern-final-project-dubleu-x-5.onrender.com)
+🔧 **API Server**: [https://mern-final-project-dubleu-x-9.onrender.com](https://mern-final-project-dubleu-x-9.onrender.com)
 
 ### **API Health Check**
-✅ **Status**: [https://mern-final-project-dubleu-x-5.onrender.com/health](https://mern-final-project-dubleu-x-5.onrender.com/health)
+✅ **Status**: [https://mern-final-project-dubleu-x-9.onrender.com/health](https://mern-final-project-dubleu-x-9.onrender.com/health)
 
 ## 🏗️ Technology Stack
 
