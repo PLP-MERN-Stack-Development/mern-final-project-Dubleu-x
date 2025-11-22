@@ -125,14 +125,28 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      console.log('🎯 STARTING REGISTRATION...');
+      console.log('📤 Sending data to:', '/api/auth/register');
+      console.log('📦 Registration data:', userData);
+
       const response = await api.post('/api/auth/register', userData);
+      
+      console.log('✅ REGISTRATION SUCCESS - Full response:', response);
+      console.log('✅ Response data:', response.data);
+      
       const { token: newToken, user: userDataResponse } = response.data;
       
-      // FIX: Store user data in localStorage
+      console.log('🔐 Token from response:', newToken);
+      console.log('👤 User from response:', userDataResponse);
+      
+      // Save to localStorage
       localStorage.setItem('token', newToken);
       if (userDataResponse) {
         localStorage.setItem('user', JSON.stringify(userDataResponse));
       }
+      
+      console.log('💾 Token saved to localStorage:', localStorage.getItem('token'));
+      console.log('💾 User saved to localStorage:', localStorage.getItem('user'));
       
       setToken(newToken);
       api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
@@ -140,6 +154,10 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('❌ REGISTRATION FAILED:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error message:', error.message);
+      
       return { 
         success: false, 
         message: error.response?.data?.message || 'Registration failed' 

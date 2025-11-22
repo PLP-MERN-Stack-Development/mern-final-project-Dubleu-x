@@ -41,23 +41,40 @@ const assignmentRoutes = require('./routes/assignments');
 const app = express();
 const server = http.createServer(app);
 
-// Enhanced CORS configuration
+
+// Flexible CORS configuration for all Vercel deployments
 const allowedOrigins = [
   'http://localhost:3000',
   'https://dubleulearn.vercel.app',
-  'https://mern-final-project-dubleu-x.vercel.app',
+  'https://mern-final-project-dubleu-x-awhi.vercel.app',
+  'https://mern-final-project-dubl-git-8c0ffb-sylvesters-projects-7aa7f8dd.vercel.app',
+  'https://mern-final-project-dubleu-x-awhi-ll4icwlk8.vercel.app',
   process.env.CLIENT_URL
-].filter(Boolean); // Remove any undefined values
+].filter(Boolean);
 
 console.log('🌐 Allowed CORS origins:', allowedOrigins);
+console.log('🌐 CORS will also allow any origin containing:', [
+  'mern-final-project-dubleu',
+  'mern-final-project-dubl', 
+  'sylvesters-projects',
+  '.vercel.app'
+]);
 
 // Enhanced CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Check if origin matches any of your project patterns
+    const isYourVercelProject = 
+      origin.includes('mern-final-project-dubleu') ||
+      origin.includes('mern-final-project-dubl') ||
+      origin.includes('sylvesters-projects') ||
+      origin.endsWith('.vercel.app'); // Allow ALL Vercel domains
+    
+    if (allowedOrigins.includes(origin) || isYourVercelProject) {
+      console.log('✅ CORS allowed for origin:', origin);
       callback(null, true);
     } else {
       console.log('🚫 CORS blocked for origin:', origin);
